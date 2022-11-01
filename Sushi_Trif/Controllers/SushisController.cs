@@ -69,7 +69,22 @@ namespace Sushi_Trif.Controllers
             }
 
             return StatusCode(HttpStatusCode.NoContent);
+
+
         }
+
+        //public IHttpActionResult PutSushi(int id, Sushi sushi)
+        //{
+
+        //        var entity = db.Sushi.FirstOrDefault(e => e.Id == id);
+        //        entity.Image = sushi.Image;
+        //        entity.Name = sushi.Name;
+        //        entity.Compound = sushi.Compound;
+        //        entity.Price = sushi.Price;
+        //       db.SaveChanges();
+        //    return StatusCode(HttpStatusCode.NoContent);
+
+        //}
 
         // POST: api/Sushis
         [ResponseType(typeof(Sushi))]
