@@ -6,6 +6,7 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Web.Http;
 using System.Web.Http.Description;
 using Sushi_Trif.Models;
@@ -21,6 +22,90 @@ namespace Sushi_Trif.Controllers
         public IHttpActionResult GetSushi()
         {
             return Ok( db.Sushi.ToList().ConvertAll(x=>new SushiModel(x)));
+        }
+
+        //GETSearch: api/Sushis
+        [ResponseType(typeof(List<SushiModel>))]
+        public IHttpActionResult GetSushiSearch(string fieldSearch, string textSearch, string fieldSort, string valueSort)
+        {
+            List<Sushi> sushis = db.Sushi.ToList();
+            if(textSearch != null)
+            {
+                if(fieldSort != null)
+                {
+                    sushis = Search(sushis, fieldSearch, textSearch);
+                    sushis = Sorting(sushis, fieldSort, valueSort);
+                }
+                else
+                {
+                    sushis = Search(sushis, fieldSearch, textSearch);
+                }
+            }
+            else
+            {
+                if(fieldSort != null)
+                {
+                    sushis = Sorting(sushis, fieldSort, valueSort);
+                }
+            }
+            return Ok( sushis);
+        }
+
+        public List<Sushi> Search (List<Sushi> sushis, string fieldSearch, string textSearch)
+        {
+            Regex regex = new Regex("^(" + textSearch + ")");
+            switch(fieldSearch)
+            {
+                case ("Name"):
+                    sushis=sushis.Where(x=>regex.IsMatch(x.Name)).ToList();
+                    break;
+                case ("Price"):
+                    sushis = sushis.Where(x => regex.IsMatch(Convert.ToString(x.Price))).ToList();
+                    break;
+                case ("Compound"):
+                    sushis = sushis.Where(x => regex.IsMatch(x.Compound)).ToList();
+                    break;
+            }
+            return sushis;
+        }
+
+        public List<Sushi> Sorting(List<Sushi> sushis, string fieldSort, string valueSort)
+        {
+            switch(fieldSort)
+            { 
+                case("Name"):
+                    if (valueSort == "По возрастанию")
+                    {
+                        sushis = sushis.OrderBy(x => x.Name).ToList();
+                    }
+                    else if (valueSort == "По убыванию")
+                    {
+                        sushis = sushis.OrderByDescending(x => x.Name).ToList();
+                    }
+                    else
+                    {
+                        sushis = db.Sushi.ToList();
+                    }
+                    break;
+                case ("Price"):
+                    if (valueSort == "По возрастанию")
+                    {
+                        sushis = sushis.OrderBy(x => x.Price).ToList();
+                    }
+                    else if(valueSort == "По убыванию")
+                    {
+                        sushis = sushis.OrderByDescending(x => x.Price).ToList();
+                    }
+                    else
+                    {
+                        sushis = db.Sushi.ToList();
+                    }
+                    break;
+                case ("0"):
+                    sushis = db.Sushi.ToList();
+                    break ;
+            }
+            return sushis;
         }
 
         // GET: api/Sushis/5
@@ -40,23 +125,16 @@ namespace Sushi_Trif.Controllers
         [ResponseType(typeof(void))]
         public IHttpActionResult PutSushi(int id, Sushi sushi)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            if (id != sushi.Id)
-            {
-                return BadRequest();
-            }
-
-            db.Entry(sushi).State = EntityState.Modified;
-
+            var dbSushi= db.Sushi.FirstOrDefault(x=>x.Id.Equals(id));
+            dbSushi.Image=sushi.Image;
+            dbSushi.Name = sushi.Name;
+            dbSushi.Compound = sushi.Compound;
+            dbSushi.Price = sushi.Price;
             try
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateConcurrencyException)
+            catch(DbUpdateConcurrencyException)
             {
                 if (!SushiExists(id))
                 {
@@ -73,18 +151,7 @@ namespace Sushi_Trif.Controllers
 
         }
 
-        //public IHttpActionResult PutSushi(int id, Sushi sushi)
-        //{
 
-        //        var entity = db.Sushi.FirstOrDefault(e => e.Id == id);
-        //        entity.Image = sushi.Image;
-        //        entity.Name = sushi.Name;
-        //        entity.Compound = sushi.Compound;
-        //        entity.Price = sushi.Price;
-        //       db.SaveChanges();
-        //    return StatusCode(HttpStatusCode.NoContent);
-
-        //}
 
         // POST: api/Sushis
         [ResponseType(typeof(Sushi))]
