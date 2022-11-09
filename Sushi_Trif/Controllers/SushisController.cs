@@ -147,10 +147,35 @@ namespace Sushi_Trif.Controllers
             }
 
             return StatusCode(HttpStatusCode.NoContent);
+        }
+        // PUTNoImage: api/Sushis/5
+        [ResponseType(typeof(void))]
+        public IHttpActionResult PutSushiNoImage(int id, Sushi sushi)
+        {
+            var dbSushi = db.Sushi.FirstOrDefault(x => x.Id.Equals(id));
+            dbSushi.Name = sushi.Name;
+            dbSushi.Compound = sushi.Compound;
+            dbSushi.Price = sushi.Price;
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!SushiExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return StatusCode(HttpStatusCode.NoContent);
 
 
         }
-
 
 
         // POST: api/Sushis
